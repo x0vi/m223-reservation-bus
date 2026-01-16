@@ -32,7 +32,7 @@ javac -cp "lib/*" -d out $(find src -name "*.java")
 
 # Pour windows (PowerShell)
 javac -cp "lib/*" -d out (Get-ChildItem -Path src -Filter "*.java" -Recurse).FullName
-java -cp "out:lib/*" JdbcConnectionTest
+java -cp "out;lib/*" JdbcConnectionTest
 ```
 
 **Note** : Sur Linux, utilisez `:` comme séparateur de classpath. Sur Windows, utilisez `;`.
