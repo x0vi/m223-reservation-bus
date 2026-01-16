@@ -1,0 +1,30 @@
+services:
+  m223-db:
+    image: mysql:8.0
+    container_name: m223_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pwd
+      MYSQL_DATABASE: projet_db
+      MYSQL_USER: projet_user
+      MYSQL_PASSWORD: projet_pwd
+    ports:
+    - "22306:3306"
+    volumes:
+    - db_data:/var/lib/mysql
+  m223-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: m223_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: m223-db
+      MYSQL_ROOT_PASSWORD: root_pwd
+      PMA_USER: projet_user
+      PMA_PASSWORD: projet_pwd
+    ports:
+      - "22380:80"
+    depends_on:
+      - m223-db
+
+volumes:
+  db_data:
