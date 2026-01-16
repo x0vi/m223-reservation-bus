@@ -26,7 +26,12 @@ Ouvrez votre navigateur et allez à : [http://localhost:22380](http://localhost:
 
 ```bash
 cd reservation-bus
-javac -cp "lib/*" -d out $(find src -name "*.java")
+
+# Pour linux
+javac -cp "lib/*" -d out $(find src -name "*.java") 
+
+# Pour windows (PowerShell)
+javac -cp "lib/*" -d out (Get-ChildItem -Path src -Filter "*.java" -Recurse).FullName
 java -cp "out:lib/*" JdbcConnectionTest
 ```
 
