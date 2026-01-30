@@ -4,11 +4,6 @@ import db.DatabaseConnection;
 
 public class Main {
  
-    // Paramètres de connexion à la base de données
-    private static final String URL = "jdbc:mysql://localhost:22306/gbc";
-    private static final String USER = "projet_user";
-    private static final String PASSWORD = "projet_pwd";
- 
     public static void main(String[] args) {
 
         try {
@@ -16,13 +11,15 @@ public class Main {
             Connection connection = DatabaseConnection.getConnection();
 
             // 1. Lecture des données
-            lireCompte(connection);
+            lireVehicules(connection);
+            lireEmployes(connection);
 
             // 2. Modification des données
-            modifierSolde(connection);
+            String plaque = assurerVehiculeExistant(connection);
+            int idEmploye = assurerEmployeExistant(connection);
 
             // 3. Lecture après modification
-            lireCompte(connection);
+            lireReservations(connection);
 
         } catch (SQLException e) {
             System.err.println("Erreur lors de l'accès à la base de données");
