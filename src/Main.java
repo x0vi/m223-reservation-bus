@@ -1,5 +1,7 @@
 import java.sql.*;
- 
+
+import db.DatabaseConnection;
+
 public class Main {
  
     // Paramètres de connexion à la base de données
@@ -8,32 +10,25 @@ public class Main {
     private static final String PASSWORD = "projet_pwd";
  
     public static void main(String[] args) {
- 
-        System.out.println("Tentative de connexion à la base de données...");
- 
-        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
- 
-            System.out.println("Connexion à la base de données établie.");
- 
-            // 1) Lecture des données
-            lireVehicules(connection);
-            lireEmployes(connection);
- 
-            // 2) Modification des données : création d'une réservation
-            // (on crée d'abord des données si nécessaire pour que l'exemple fonctionne)
-            String plaque = assurerVehiculeExistant(connection);
-            int idEmploye = assurerEmployeExistant(connection);
- 
-            creerReservation(connection, plaque, idEmploye);
- 
-            // 3) Lecture après modification
-            lireReservations(connection);
- 
+
+        try {
+            // 1. Obtenir la connexion à la base de données
+            Connection connection = DatabaseConnection.getConnection();
+
+            // 1. Lecture des données
+            lireCompte(connection);
+
+            // 2. Modification des données
+            modifierSolde(connection);
+
+            // 3. Lecture après modification
+            lireCompte(connection);
+
         } catch (SQLException e) {
-            System.out.println("Échec de la connexion !");
-            System.out.println("Message : " + e.getMessage());
+            System.err.println("Erreur lors de l'accès à la base de données");
+            e.printStackTrace();
         }
- 
+
         System.out.println("=== FIN DE L'APPLICATION ===");
     }
  
