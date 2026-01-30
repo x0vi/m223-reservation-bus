@@ -25,9 +25,5 @@ services:
       - "22380:80"
     depends_on:
       - m223-db
-  m223-java-client:
-    build:
-      context: .
-      dockerfile: Dockerfile
 volumes:
   db_data:

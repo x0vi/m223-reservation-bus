@@ -20,7 +20,7 @@ Ouvrez votre navigateur et allez à : [http://localhost:22380](http://localhost:
 
 - **Serveur** : `m223-db`
 - **Nom d'utilisateur** : `root`
-- **Mot de passe** : `projet_pwd`
+- **Mot de passe** : `root_pwd`
 
 ### 3. Compiler et exécuter le code Java
 
@@ -40,6 +40,6 @@ java -cp "out;lib/*" JdbcConnectionTest
 ## Configuration
 
 - **MySQL** : localhost:22306
-- **Base de données** : `projet_db`
+- **Base de données** : `gbc`
 - **Utilisateur** : `projet_user`
 - **Mot de passe** : `projet_pwd`
