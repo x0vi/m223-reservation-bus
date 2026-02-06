@@ -44,11 +44,18 @@ java -cp "out;lib/*" JdbcConnectionTest
 - **Utilisateur** : `projet_user`
 - **Mot de passe** : `projet_pwd`
 
-## Java - Classes de Modèle
+## Java - Architecture
 
-Les classes de modèle se trouvent dans le dossier [`src/model/`](src/model/) et correspondent aux tables de la base de données. Chaque classe représente une entité avec ses attributs, constructeur et getters.
+Le projet suit une architecture multi-couche simple :
 
-### Classes existantes
+- **Couche Présentation** : [`Main.java`](src/Main.java) — point d'entrée, affichage des résultats
+- **Couche Modèle** : [`src/model/`](src/model/) — objets simples transportant des données
+- **Couche Persistance** : [`src/dao/`](src/dao/) — accès à la base de données (SELECT, INSERT, UPDATE)
+- **Connexion DB** : [`src/db/`](src/db/) — gestion de la connexion à la base de données
+
+### 1. Classes de Modèle (`src/model/`)
+
+Objets simples transportant des données. Attributs privés, constructeur, getters.
 
 | Classe | Table SQL | Attributs |
 |--------|-----------|-----------|
@@ -56,48 +63,97 @@ Les classes de modèle se trouvent dans le dossier [`src/model/`](src/model/) et
 | [`Employe`](src/model/Employe.java) | `t_employe` | `idEmploye`, `nom`, `prenom` |
 | [`Reservation`](src/model/Reservation.java) | `t_reservation` | `idReservation`, `dateReservation`, `plaque`, `idEmploye` |
 
-### Template pour ajouter une nouvelle classe
+### 2. Classes DAO (`src/dao/`)
 
-Pour créer une nouvelle classe de modèle correspondant à une table SQL, suivez ce template :
+Les classes DAO (Data Access Object) encapsulent l'accès à la base de données. Chaque méthode reçoit la `Connection` en paramètre. Elles contiennent les requêtes SQL et retournent des objets du modèle.
+
+| Classe | Méthodes |
+|--------|----------|
+| [`VehiculeDao`](src/dao/VehiculeDao.java) | `selectAll()`, `insert()`, `update()` |
+| [`EmployeDao`](src/dao/EmployeDao.java) | `selectAll()`, `insert()`, `update()` |
+| [`ReservationDao`](src/dao/ReservationDao.java) | `selectAll()`, `insert()`, `update()` |
+
+**Caractéristiques des DAO :**
+- Pas de constructeur spécial (instanciation simple)
+- Chaque méthode reçoit `Connection` en paramètre
+- Méthodes utilisant `PreparedStatement` pour éviter les injections SQL
+- Gestion automatique des `ResultSet` avec try-with-resources
+
+### Template pour ajouter une nouvelle classe de modèle
 
 ```java
 package model;
 
-// Ajoutez les imports nécessaires (ex: java.sql.Date)
-
 public class NomClasse {
-    // Attributs privés correspondant aux colonnes SQL
     private int id;
     private String nom;
-    private String description;
     
-    // Constructeur avec tous les paramètres
-    public NomClasse(int id, String nom, String description) {
+    public NomClasse(int id, String nom) {
         this.id = id;
         this.nom = nom;
-        this.description = description;
     }
     
-    // Getters pour accéder aux attributs
-    public int getId() {
-        return id;
+    public int getId() { return id; }
+    public String getNom() { return nom; }
+}
+```
+
+### Template pour ajouter un nouveau DAO
+
+```java
+package dao;
+
+import model.NomClasse;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class NomClasseDao {
+
+    // ===== SELECT =====
+    public List<NomClasse> selectAll(Connection connection) throws SQLException {
+        String sql = "SELECT id, nom FROM t_table";
+        List<NomClasse> liste = new ArrayList<>();
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                liste.add(new NomClasse(
+                    rs.getInt("id"),
+                    rs.getString("nom")
+                ));
+            }
+        }
+        return liste;
     }
-    
-    public String getNom() {
-        return nom;
+
+    // ===== INSERT =====
+    public void insert(Connection connection, NomClasse obj) throws SQLException {
+        String sql = "INSERT INTO t_table(id, nom) VALUES (?, ?)";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, obj.getId());
+            ps.setString(2, obj.getNom());
+            ps.executeUpdate();
+        }
     }
-    
-    public String getDescription() {
-        return description;
+
+    // ===== UPDATE =====
+    public void update(Connection connection, NomClasse obj) throws SQLException {
+        String sql = "UPDATE t_table SET nom = ? WHERE id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, obj.getNom());
+            ps.setInt(2, obj.getId());
+            ps.executeUpdate();
+        }
     }
 }
 ```
 
-**Conventions à suivre :**
-- Le fichier doit être placé dans [`src/model/`](src/model/)
-- Le nom de la classe doit correspondre au nom du fichier (ex: `MaClasse.java` → `public class MaClasse`)
-- Les attributs doivent être `private`
-- Créer un constructeur avec tous les paramètres
-- Créer des getters pour tous les attributs
-- Utiliser le package `model;` en début de fichier
-- Pour les dates SQL, utiliser `java.sql.Date`
+**Conventions :**
+- Modèles dans [`src/model/`](src/model/) — attributs privés, getters uniquement
+- DAO dans [`src/dao/`](src/dao/) — chaque méthode reçoit `Connection` en paramètre
+- Utiliser `PreparedStatement` pour toutes les requêtes paramétrées
+- Fermer les ressources avec try-with-resources
