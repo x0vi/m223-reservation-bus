@@ -1,44 +1,50 @@
 package dao;
- 
+
 import model.Reservation;
- 
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
- 
+
 public class ReservationDao {
- 
+
+    private Connection connection;
+
+    public ReservationDao(Connection connection) {
+        this.connection = connection;
+    }
+
     // ===== SELECT =====
-    public List<Reservation> selectAll(Connection connection) throws SQLException {
+    public List<Reservation> selectAll() throws SQLException {
         String sql = """
-            SELECT idReservation, dateReservation, plaque, idEmploye
+            SELECT id_reservation, date_reservation, plaque, id_employe
             FROM t_reservation
         """;
- 
+
         List<Reservation> reservations = new ArrayList<>();
- 
+
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
- 
+
             while (rs.next()) {
                 reservations.add(new Reservation(
-                        rs.getInt("idReservation"),
-                        rs.getDate("dateReservation"),
+                        rs.getInt("id_reservation"),
+                        rs.getDate("date_reservation"),
                         rs.getString("plaque"),
-                        rs.getInt("idEmploye")
+                        rs.getInt("id_employe")
                 ));
             }
         }
         return reservations;
     }
- 
+
     // ===== INSERT =====
-    public void insert(Connection connection, Reservation r) throws SQLException {
+    public void insert(Reservation r) throws SQLException {
         String sql = """
-            INSERT INTO t_reservation(dateReservation, plaque, idEmploye)
+            INSERT INTO t_reservation(date_reservation, plaque, id_employe)
             VALUES (?, ?, ?)
         """;
- 
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setDate(1, r.getDateReservation());
             ps.setString(2, r.getPlaque());
@@ -46,15 +52,15 @@ public class ReservationDao {
             ps.executeUpdate();
         }
     }
- 
+
     // ===== UPDATE =====
-    public void update(Connection connection, Reservation r) throws SQLException {
+    public void update(Reservation r) throws SQLException {
         String sql = """
             UPDATE t_reservation
-            SET dateReservation = ?, plaque = ?, idEmploye = ?
-            WHERE idReservation = ?
+            SET date_reservation = ?, plaque = ?, id_employe = ?
+            WHERE id_reservation = ?
         """;
- 
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setDate(1, r.getDateReservation());
             ps.setString(2, r.getPlaque());

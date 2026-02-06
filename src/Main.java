@@ -1,54 +1,44 @@
-import java.sql.*;
+import service.*;
+import model.*;
 import java.util.List;
 
-import db.DatabaseConnection;
-import dao.VehiculeDao;
-import dao.EmployeDao;
-import dao.ReservationDao;
-import model.Vehicule;
-import model.Employe;
-import model.Reservation;
-
 public class Main {
- 
+
     public static void main(String[] args) {
 
         try {
-            // 1. Obtenir la connexion à la base de données
-            Connection connection = DatabaseConnection.getConnection();
+            // 1. Instancier les services (chaque service gère sa propre connexion)
+            VehiculeService vehiculeService = new VehiculeService();
+            EmployeService employeService = new EmployeService();
+            ReservationService reservationService = new ReservationService();
 
-            // 2. Créer les DAO
-            VehiculeDao vehiculeDao = new VehiculeDao();
-            EmployeDao employeDao = new EmployeDao();
-            ReservationDao reservationDao = new ReservationDao();
+            // 2. Lecture des données
+            lireVehicules(vehiculeService);
+            lireEmployes(employeService);
 
-            // 3. Lecture des données
-            lireVehicules(connection, vehiculeDao);
-            lireEmployes(connection, employeDao);
+            // 3. Modification des données
+            assurerVehiculeExistant(vehiculeService);
+            assurerEmployeExistant(employeService);
 
-            // 4. Modification des données
-            String plaque = assurerVehiculeExistant(connection, vehiculeDao);
-            int idEmploye = assurerEmployeExistant(connection, employeDao);
+            // 4. Lecture après modification
+            lireReservations(reservationService);
 
-            // 5. Lecture après modification
-            lireReservations(connection, reservationDao);
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.err.println("Erreur lors de l'accès à la base de données");
             e.printStackTrace();
         }
 
         System.out.println("=== FIN DE L'APPLICATION ===");
     }
- 
+
     // -------------------------
     // LECTURES
     // -------------------------
- 
-    private static void lireVehicules(Connection connection, VehiculeDao dao) throws SQLException {
+
+    private static void lireVehicules(VehiculeService service) throws Exception {
         System.out.println("\n--- Véhicules ---");
 
-        List<Vehicule> vehicules = dao.selectAll(connection);
+        List<Vehicule> vehicules = service.listerVehicules();
 
         if (vehicules.isEmpty()) {
             System.out.println("(Aucun véhicule)");
@@ -59,11 +49,11 @@ public class Main {
             }
         }
     }
- 
-    private static void lireEmployes(Connection connection, EmployeDao dao) throws SQLException {
+
+    private static void lireEmployes(EmployeService service) throws Exception {
         System.out.println("\n--- Employés ---");
 
-        List<Employe> employes = dao.selectAll(connection);
+        List<Employe> employes = service.listerEmployes();
 
         if (employes.isEmpty()) {
             System.out.println("(Aucun employé)");
@@ -74,11 +64,11 @@ public class Main {
             }
         }
     }
- 
-    private static void lireReservations(Connection connection, ReservationDao dao) throws SQLException {
+
+    private static void lireReservations(ReservationService service) throws Exception {
         System.out.println("\n--- Réservations ---");
 
-        List<Reservation> reservations = dao.selectAll(connection);
+        List<Reservation> reservations = service.listerReservations();
 
         if (reservations.isEmpty()) {
             System.out.println("(Aucune réservation)");
@@ -92,36 +82,26 @@ public class Main {
             }
         }
     }
- 
+
     // -------------------------
     // HELPERS : pour garantir que l'exemple marche même si tables vides
     // -------------------------
- 
-    private static String assurerVehiculeExistant(Connection connection, VehiculeDao dao) throws SQLException {
-        List<Vehicule> vehicules = dao.selectAll(connection);
-        if (!vehicules.isEmpty()) return vehicules.get(0).getPlaque();
+
+    private static void assurerVehiculeExistant(VehiculeService service) throws Exception {
+        List<Vehicule> vehicules = service.listerVehicules();
+        if (!vehicules.isEmpty()) return;
 
         System.out.println("\n(Aucun véhicule trouvé -> insertion d'un véhicule de test)");
-
         Vehicule test = new Vehicule("GE12345", "Toyota", "Yaris", 5);
-        dao.insert(connection, test);
-
-        return test.getPlaque();
+        service.creerVehicule(test);
     }
- 
-    private static int assurerEmployeExistant(Connection connection, EmployeDao dao) throws SQLException {
-        List<Employe> employes = dao.selectAll(connection);
-        if (!employes.isEmpty()) return employes.get(0).getIdEmploye();
+
+    private static void assurerEmployeExistant(EmployeService service) throws Exception {
+        List<Employe> employes = service.listerEmployes();
+        if (!employes.isEmpty()) return;
 
         System.out.println("\n(Aucun employé trouvé -> insertion d'un employé de test)");
-
         Employe test = new Employe(0, "Dupont", "Alice");
-        dao.insert(connection, test);
-
-        // Re-read to get the generated ID
-        employes = dao.selectAll(connection);
-        if (!employes.isEmpty()) return employes.get(0).getIdEmploye();
-
-        throw new SQLException("Impossible de créer un employé de test.");
+        service.creerEmploye(test);
     }
 }

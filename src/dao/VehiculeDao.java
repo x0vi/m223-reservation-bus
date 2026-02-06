@@ -1,40 +1,46 @@
 package dao;
- 
+
 import model.Vehicule;
- 
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
- 
+
 public class VehiculeDao {
- 
+
+    private Connection connection;
+
+    public VehiculeDao(Connection connection) {
+        this.connection = connection;
+    }
+
     // ===== SELECT =====
-    public List<Vehicule> selectAll(Connection connection) throws SQLException {
-        String sql = "SELECT plaque, marque, modele, capaciteMax FROM t_vehicule";
+    public List<Vehicule> selectAll() throws SQLException {
+        String sql = "SELECT plaque, marque, modele, capacite_max FROM t_vehicule";
         List<Vehicule> vehicules = new ArrayList<>();
- 
+
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
- 
+
             while (rs.next()) {
                 vehicules.add(new Vehicule(
                         rs.getString("plaque"),
                         rs.getString("marque"),
                         rs.getString("modele"),
-                        rs.getInt("capaciteMax")
+                        rs.getInt("capacite_max")
                 ));
             }
         }
         return vehicules;
     }
- 
+
     // ===== INSERT =====
-    public void insert(Connection connection, Vehicule v) throws SQLException {
+    public void insert(Vehicule v) throws SQLException {
         String sql = """
-            INSERT INTO t_vehicule(plaque, marque, modele, capaciteMax)
+            INSERT INTO t_vehicule(plaque, marque, modele, capacite_max)
             VALUES (?, ?, ?, ?)
         """;
- 
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, v.getPlaque());
             ps.setString(2, v.getMarque());
@@ -43,15 +49,15 @@ public class VehiculeDao {
             ps.executeUpdate();
         }
     }
- 
+
     // ===== UPDATE =====
-    public void update(Connection connection, Vehicule v) throws SQLException {
+    public void update(Vehicule v) throws SQLException {
         String sql = """
             UPDATE t_vehicule
-            SET marque = ?, modele = ?, capaciteMax = ?
+            SET marque = ?, modele = ?, capacite_max = ?
             WHERE plaque = ?
         """;
- 
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, v.getMarque());
             ps.setString(2, v.getModele());
