@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS t_vehicule (
     capacite_max INT (2)
 );
 
-
 CREATE TABLE IF NOT EXISTS t_employe (
     id_employe INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(30) NOT NULL,
@@ -33,4 +32,17 @@ CREATE TABLE IF NOT EXISTS t_reservation (
         /*si l'employé est dans une reservation il ne peut pas etre supprimé*/
         ON UPDATE CASCADE
 );
+
+-- Données initiales : Véhicules
+INSERT INTO t_vehicule (plaque, marque, modele, capacite_max) VALUES
+    ('FR362122', 'Mercedes', 'Sprinter', 20),
+    ('FR789456', 'Iveco', 'Daily', 15),
+    ('FR111222', 'Volvo', '9700', 50);
+
+-- Données initiales : Employés
+INSERT INTO t_employe (nom, prenom) VALUES
+    ('Dupont', 'Jean'),
+    ('Martin', 'Marie'),
+    ('Bernard', 'Pierre');
+
 COMMIT;
