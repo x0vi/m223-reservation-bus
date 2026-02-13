@@ -1,107 +1,66 @@
-import service.*;
 import model.*;
+import service.*;
+
+import java.sql.Date;
 import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
-        try {
-            // 1. Instancier les services (chaque service gère sa propre connexion)
-            VehiculeService vehiculeService = new VehiculeService();
-            EmployeService employeService = new EmployeService();
-            ReservationService reservationService = new ReservationService();
+        System.out.println("=== Démonstration du système de réservation de bus ===\n");
 
-            // 2. Lecture des données
-            lireVehicules(vehiculeService);
-            lireEmployes(employeService);
+        // === Services ===
+        VehiculeService vehiculeService = new VehiculeService();
+        EmployeService employeService = new EmployeService();
+        ReservationService reservationService = new ReservationService();
 
-            // 3. Modification des données
-            assurerVehiculeExistant(vehiculeService);
-            assurerEmployeExistant(employeService);
+        // === Véhicules ===
+        System.out.println("--- Création de véhicules ---");
+        Vehicule v1 = new Vehicule("FR362122", "Audi", "S3 8Y Facelift", 5);
+        Vehicule v2 = new Vehicule("FR789456", "Iveco", "Daily", 15);
+        
+        vehiculeService.creerVehicule(v1);
+        vehiculeService.creerVehicule(v2);
+        System.out.println("Véhicules créés avec succès.\n");
 
-            // 4. Lecture après modification
-            lireReservations(reservationService);
+        // === Employés ===
+        System.out.println("--- Création d'employés ---");
+        Employe e1 = new Employe(1, "Dupont", "Jean");
+        Employe e2 = new Employe(2, "Martin", "Marie");
+        
+        employeService.creerEmploye(e1);
+        employeService.creerEmploye(e2);
+        System.out.println("Employés créés avec succès.\n");
 
-        } catch (Exception e) {
-            System.err.println("Erreur lors de l'accès à la base de données");
-            e.printStackTrace();
+        // === Réservations (ID écrit en dur, faudrait reprendre l'ID car en auto-incrémenté) ===
+        System.out.println("--- Création de réservations ---");
+        Reservation r1 = new Reservation(1, new Date(System.currentTimeMillis()), "FR362122", 1);
+        Reservation r2 = new Reservation(2, new Date(System.currentTimeMillis()), "FR789456", 2);
+        
+        reservationService.creerReservation(r1);
+        reservationService.creerReservation(r2);
+        System.out.println("Réservations créées avec succès.\n");
+
+        // === Affichage des données (Pas obligé mais j'aime bien avoir des confirmations) ===
+        System.out.println("=== Liste des véhicules ===");
+        List<Vehicule> vehicules = vehiculeService.listerVehicules();
+        for (Vehicule v : vehicules) {
+            System.out.println("  - " + v.getPlaque() + " : " + v.getMarque() + " " + v.getModele() + " (" + v.getCapaciteMax() + " places)");
         }
 
-        System.out.println("=== FIN DE L'APPLICATION ===");
-    }
-
-    // -------------------------
-    // LECTURES
-    // -------------------------
-
-    private static void lireVehicules(VehiculeService service) throws Exception {
-        System.out.println("\n--- Véhicules ---");
-
-        List<Vehicule> vehicules = service.listerVehicules();
-
-        if (vehicules.isEmpty()) {
-            System.out.println("(Aucun véhicule)");
-        } else {
-            for (Vehicule v : vehicules) {
-                System.out.printf("Plaque=%s | Marque=%s | Modèle=%s | Capacité max=%d%n",
-                        v.getPlaque(), v.getMarque(), v.getModele(), v.getCapaciteMax());
-            }
+        System.out.println("\n=== Liste des employés ===");
+        List<Employe> employes = employeService.listerEmployes();
+        for (Employe e : employes) {
+            System.out.println("  - " + e.getIdEmploye() + " : " + e.getPrenom() + " " + e.getNom());
         }
-    }
 
-    private static void lireEmployes(EmployeService service) throws Exception {
-        System.out.println("\n--- Employés ---");
-
-        List<Employe> employes = service.listerEmployes();
-
-        if (employes.isEmpty()) {
-            System.out.println("(Aucun employé)");
-        } else {
-            for (Employe e : employes) {
-                System.out.printf("ID=%d | Nom=%s | Prénom=%s%n",
-                        e.getIdEmploye(), e.getNom(), e.getPrenom());
-            }
+        System.out.println("\n=== Liste des réservations ===");
+        List<Reservation> reservations = reservationService.listerReservations();
+        for (Reservation r : reservations) {
+            System.out.println("  - Réservation " + r.getIdReservation() + " : Véhicule " + r.getPlaque() + ", Employé " + r.getIdEmploye() + ", Date " + r.getDateReservation());
         }
-    }
 
-    private static void lireReservations(ReservationService service) throws Exception {
-        System.out.println("\n--- Réservations ---");
-
-        List<Reservation> reservations = service.listerReservations();
-
-        if (reservations.isEmpty()) {
-            System.out.println("(Aucune réservation)");
-        } else {
-            for (Reservation r : reservations) {
-                System.out.printf("Res#%d | Date=%s | Plaque=%s | Employé=%d%n",
-                        r.getIdReservation(),
-                        r.getDateReservation(),
-                        r.getPlaque(),
-                        r.getIdEmploye());
-            }
-        }
-    }
-
-    // -------------------------
-    // HELPERS : pour garantir que l'exemple marche même si tables vides
-    // -------------------------
-
-    private static void assurerVehiculeExistant(VehiculeService service) throws Exception {
-        List<Vehicule> vehicules = service.listerVehicules();
-        if (!vehicules.isEmpty()) return;
-
-        System.out.println("\n(Aucun véhicule trouvé -> insertion d'un véhicule de test)");
-        Vehicule test = new Vehicule("GE12345", "Toyota", "Yaris", 5);
-        service.creerVehicule(test);
-    }
-
-    private static void assurerEmployeExistant(EmployeService service) throws Exception {
-        List<Employe> employes = service.listerEmployes();
-        if (!employes.isEmpty()) return;
-
-        System.out.println("\n(Aucun employé trouvé -> insertion d'un employé de test)");
-        Employe test = new Employe(0, "Dupont", "Alice");
-        service.creerEmploye(test);
+        System.out.println("\n=== Fin du programme ===");
     }
 }

@@ -32,7 +32,7 @@ javac -cp "lib/*" -d out $(find src -name "*.java")
 
 # Pour windows (PowerShell)
 javac -cp "lib/*" -d out (Get-ChildItem -Path src -Filter "*.java" -Recurse).FullName
-java -cp "out;lib/*" JdbcConnectionTest
+java -cp "out;lib/*" Main
 ```
 
 **Note** : Sur Linux, utilisez `:` comme séparateur de classpath. Sur Windows, utilisez `;`.
@@ -46,11 +46,12 @@ java -cp "out;lib/*" JdbcConnectionTest
 
 ## Java - Architecture
 
-Le projet suit une architecture multi-couche simple :
+Le projet suit une architecture multi-couche :
 
 - **Couche Présentation** : [`Main.java`](src/Main.java) — point d'entrée, affichage des résultats
+- **Couche Métier (Service)** : [`src/service/`](src/service/) — logique applicative, coordination des actions
+- **Couche Persistance (DAO)** : [`src/dao/`](src/dao/) — accès à la base de données (SELECT, INSERT, UPDATE)
 - **Couche Modèle** : [`src/model/`](src/model/) — objets simples transportant des données
-- **Couche Persistance** : [`src/dao/`](src/dao/) — accès à la base de données (SELECT, INSERT, UPDATE)
 - **Connexion DB** : [`src/db/`](src/db/) — gestion de la connexion à la base de données
 
 ### 1. Classes de Modèle (`src/model/`)
@@ -65,7 +66,7 @@ Objets simples transportant des données. Attributs privés, constructeur, gette
 
 ### 2. Classes DAO (`src/dao/`)
 
-Les classes DAO (Data Access Object) encapsulent l'accès à la base de données. Chaque méthode reçoit la `Connection` en paramètre. Elles contiennent les requêtes SQL et retournent des objets du modèle.
+Les classes DAO (Data Access Object) encapsulent l'accès à la base de données. Elles reçoivent la `Connection` dans leur constructeur et contiennent les requêtes SQL.
 
 | Classe | Méthodes |
 |--------|----------|
@@ -74,12 +75,28 @@ Les classes DAO (Data Access Object) encapsulent l'accès à la base de données
 | [`ReservationDao`](src/dao/ReservationDao.java) | `selectAll()`, `insert()`, `update()` |
 
 **Caractéristiques des DAO :**
-- Pas de constructeur spécial (instanciation simple)
-- Chaque méthode reçoit `Connection` en paramètre
+- Constructeur prenant `Connection` en paramètre
 - Méthodes utilisant `PreparedStatement` pour éviter les injections SQL
 - Gestion automatique des `ResultSet` avec try-with-resources
 
-### Template pour ajouter une nouvelle classe de modèle
+### 3. Classes Service (`src/service/`)
+
+Les classes Service coordonnent les actions et contiennent la logique métier. Elles utilisent les DAO pour accéder aux données.
+
+| Classe | Responsabilités |
+|--------|-----------------|
+| [`VehiculeService`](src/service/VehiculeService.java) | Gestion des véhicules |
+| [`EmployeService`](src/service/EmployeService.java) | Gestion des employés |
+| [`ReservationService`](src/service/ReservationService.java) | Gestion des réservations |
+
+**Caractéristiques des Services :**
+- Constructeur sans paramètre qui obtient la `Connection` via `DatabaseConnection`
+- Instancie les DAO nécessaires avec la `Connection`
+- Contient la logique métier (validation, coordination de plusieurs DAO, etc.)
+
+### Templates
+
+#### Template pour une nouvelle classe de modèle
 
 ```java
 package model;
@@ -98,7 +115,7 @@ public class NomClasse {
 }
 ```
 
-### Template pour ajouter un nouveau DAO
+#### Template pour un nouveau DAO
 
 ```java
 package dao;
@@ -110,8 +127,14 @@ import java.util.List;
 
 public class NomClasseDao {
 
+    private Connection connection;
+
+    public NomClasseDao(Connection connection) {
+        this.connection = connection;
+    }
+
     // ===== SELECT =====
-    public List<NomClasse> selectAll(Connection connection) throws SQLException {
+    public List<NomClasse> selectAll() throws SQLException {
         String sql = "SELECT id, nom FROM t_table";
         List<NomClasse> liste = new ArrayList<>();
 
@@ -129,18 +152,17 @@ public class NomClasseDao {
     }
 
     // ===== INSERT =====
-    public void insert(Connection connection, NomClasse obj) throws SQLException {
-        String sql = "INSERT INTO t_table(id, nom) VALUES (?, ?)";
+    public void insert(NomClasse obj) throws SQLException {
+        String sql = "INSERT INTO t_table(nom) VALUES (?)";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, obj.getId());
-            ps.setString(2, obj.getNom());
+            ps.setString(1, obj.getNom());
             ps.executeUpdate();
         }
     }
 
     // ===== UPDATE =====
-    public void update(Connection connection, NomClasse obj) throws SQLException {
+    public void update(NomClasse obj) throws SQLException {
         String sql = "UPDATE t_table SET nom = ? WHERE id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -152,8 +174,45 @@ public class NomClasseDao {
 }
 ```
 
+#### Template pour un nouveau Service
+
+```java
+package service;
+
+import dao.NomClasseDao;
+import db.DatabaseConnection;
+import model.NomClasse;
+
+import java.sql.Connection;
+import java.util.List;
+
+public class NomClasseService {
+
+    private NomClasseDao dao;
+
+    public NomClasseService() throws Exception {
+        Connection connection = DatabaseConnection.getConnection();
+        this.dao = new NomClasseDao(connection);
+    }
+
+    public List<NomClasse> lister() throws Exception {
+        return dao.selectAll();
+    }
+
+    public void creer(NomClasse obj) throws Exception {
+        dao.insert(obj);
+    }
+
+    public void modifier(NomClasse obj) throws Exception {
+        dao.update(obj);
+    }
+}
+```
+
 **Conventions :**
 - Modèles dans [`src/model/`](src/model/) — attributs privés, getters uniquement
-- DAO dans [`src/dao/`](src/dao/) — chaque méthode reçoit `Connection` en paramètre
+- DAO dans [`src/dao/`](src/dao/) — reçoivent `Connection` dans le constructeur
+- Services dans [`src/service/`](src/service/) — obtiennent `Connection` via `DatabaseConnection`, instancient les DAO
+- [`Main.java`](src/Main.java) utilise uniquement les Services, jamais les DAO directement
 - Utiliser `PreparedStatement` pour toutes les requêtes paramétrées
 - Fermer les ressources avec try-with-resources
