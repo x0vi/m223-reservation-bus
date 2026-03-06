@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS t_reservation (
     date_reservation DATE NOT NULL,
     plaque VARCHAR(8) NOT NULL,
     id_employe INT NOT NULL,
+    nb_places INT NOT NULL,
 
     FOREIGN KEY (plaque)
         REFERENCES t_vehicule(plaque)
