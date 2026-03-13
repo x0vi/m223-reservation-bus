@@ -1,13 +1,15 @@
+import model.*;
 import service.ReservationService;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        String dateRes = "2026-03-14";
         Thread utilisateur1 = new Thread(() -> {
             try {
                 ReservationService service = new ReservationService();
-                service.actionConcurrente(new Reservation(0, dateRes, "FR362122", 1));
+                service.actionConcurrente(new Reservation(dateRes, "FR362122", 1, 1));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -16,7 +18,7 @@ public class Main {
         Thread utilisateur2 = new Thread(() -> {
             try {
                 ReservationService service = new ReservationService();
-                service.actionConcurrente(new Reservation(0, dateRes, "FR362122", 2));
+                service.actionConcurrente(new Reservation(dateRes, "FR362122", 2, 1));
             } catch (Exception e) {
                 e.printStackTrace();
             }
