@@ -39,6 +39,7 @@ public class VehiculeDao {
                 SELECT plaque, marque, modele, capacite_max
                 FROM t_vehicule
                 WHERE plaque = ?
+                FOR UPDATE
                 """;
 
         Vehicule vehicule = null;
