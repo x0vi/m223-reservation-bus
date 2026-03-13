@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS t_reservation (
 
 -- Données initiales : Véhicules
 INSERT INTO t_vehicule (plaque, marque, modele, capacite_max) VALUES
-    ('FR362122', 'Mercedes', 'Sprinter', 20),
+    ('FR362122', 'Audi', 'S3', 5),
     ('FR789456', 'Iveco', 'Daily', 15),
     ('FR111222', 'Volvo', '9700', 50);
 
@@ -45,5 +45,11 @@ INSERT INTO t_employe (nom, prenom) VALUES
     ('Dupont', 'Jean'),
     ('Martin', 'Marie'),
     ('Bernard', 'Pierre');
+
+-- Données initiales : Réservations
+INSERT INTO t_reservation (date_reservation, plaque, id_employe, nb_places) VALUES
+    ('2023-01-01', 'FR362122', 1, 4),
+    ('2023-01-02', 'FR789456', 2, 10),
+    ('2023-01-03', 'FR111222', 3, 20);
 
 COMMIT;

@@ -41,14 +41,15 @@ public class ReservationDao {
     // ===== INSERT =====
     public void insert(Reservation r) throws SQLException {
         String sql = """
-            INSERT INTO t_reservation(date_reservation, plaque, id_employe)
-            VALUES (?, ?, ?)
+            INSERT INTO t_reservation(date_reservation, plaque, id_employe, nb_places)
+            VALUES (?, ?, ?, ?)
         """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setDate(1, r.getDateReservation());
             ps.setString(2, r.getPlaque());
             ps.setInt(3, r.getIdEmploye());
+            ps.setInt(4, r.getNbPlaces());
             ps.executeUpdate();
         }
     }
