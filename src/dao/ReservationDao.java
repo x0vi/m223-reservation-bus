@@ -54,6 +54,26 @@ public class ReservationDao {
         }
     }
 
+    // ===== SOMME DES PLACES DÉJÀ RÉSERVÉES =====
+    public int getTotalPlacesReservees(String plaque, java.sql.Date date) throws SQLException {
+        String sql = """
+            SELECT COALESCE(SUM(nb_places), 0) AS total
+            FROM t_reservation
+            WHERE plaque = ? AND date_reservation = ?
+        """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, plaque);
+            ps.setDate(2, date);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        }
+        return 0;
+    }
+
     // ===== UPDATE =====
     public void update(Reservation r) throws SQLException {
         String sql = """

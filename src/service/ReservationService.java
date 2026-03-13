@@ -5,6 +5,7 @@ import dao.VehiculeDao;
 import dao.EmployeDao;
 import db.DatabaseConnection;
 import model.Reservation;
+import model.Vehicule;
 
 import java.sql.Connection;
 import java.util.List;
@@ -34,6 +35,26 @@ public class ReservationService {
 
         try {
 
+            // 0. Vérification de la disponibilité
+            int capaciteMax = vehiculeDao.selectAll().stream()
+                    .filter(v -> v.getPlaque().equals(reservation.getPlaque()))
+                    .mapToInt(Vehicule::getCapaciteMax)
+                    .findFirst()
+                    .orElseThrow(() -> new Exception("Véhicule non trouvé : " + reservation.getPlaque()));
+
+            int totalDejaReserve = reservationDao.getTotalPlacesReservees(
+                    reservation.getPlaque(), reservation.getDateReservation());
+
+            if (totalDejaReserve + reservation.getNbPlaces() > capaciteMax) {
+                reservation.setDisponibilite(false);
+                connection.rollback();
+                throw new Exception("Réservation refusée : capacité maximale du véhicule "
+                        + reservation.getPlaque() + " atteinte pour la date "
+                        + reservation.getDateReservation() + ". Disponibilité : false.");
+            }
+
+            reservation.setDisponibilite(true);
+
             // 1. Insérer la réservation
             reservationDao.insert(reservation);
 
@@ -45,10 +66,8 @@ public class ReservationService {
             // Un problème est survenu -> retour à l'état initial
             connection.rollback();
 
-            throw new Exception(
-                "La réservation n'a pas pu être enregistrée. "
-              + "Aucune donnée n'a été sauvegardée."
-            );
+            // Relancer l'exception originale pour que l'appelant reçoive le message précis
+            throw e;
 
         } finally {
             

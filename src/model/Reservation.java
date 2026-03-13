@@ -7,7 +7,8 @@ public class Reservation {
     private Date dateReservation;
     private String plaque;
     private int idEmploye;
-    private int nbPlaces;
+        private int nbPlaces;
+    private boolean disponibilite;
 
     public Reservation(int idReservation, Date dateReservation, String plaque, int idEmploye) {
         this(idReservation, dateReservation, plaque, idEmploye, 1);
@@ -19,25 +20,14 @@ public class Reservation {
         this.plaque = plaque;
         this.idEmploye = idEmploye;
         this.nbPlaces = nbPlaces;
+        this.disponibilite = true;
     }
 
-    public int getIdReservation() {
-        return idReservation;
-    }
-
-    public Date getDateReservation() {
-        return dateReservation;
-    }
-
-    public String getPlaque() {
-        return plaque;
-    }
-
-    public int getIdEmploye() {
-        return idEmploye;
-    }
-
-    public int getNbPlaces() {
-        return nbPlaces;
-    }
+    public int getIdReservation() { return idReservation; }
+    public Date getDateReservation() { return dateReservation; }
+    public String getPlaque() { return plaque; }
+    public int getIdEmploye() { return idEmploye; }
+    public int getNbPlaces() { return nbPlaces; }
+    public boolean getDisponibilite() { return disponibilite; }
+    public void setDisponibilite(boolean disponibilite) { this.disponibilite = disponibilite; }
 }
