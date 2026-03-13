@@ -11,7 +11,7 @@ public class Main {
         Thread utilisateur1 = new Thread(() -> {
             try {
                 ReservationService service = new ReservationService();
-                service.creerReservation(new Reservation(0, dateRes, "FR362122", 1));
+                service.actionConcurrente(new Reservation(0, dateRes, "FR362122", 1));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -20,7 +20,7 @@ public class Main {
         Thread utilisateur2 = new Thread(() -> {
             try {
                 ReservationService service = new ReservationService();
-                service.creerReservation(new Reservation(0, dateRes, "FR362122", 2));
+                service.actionConcurrente(new Reservation(0, dateRes, "FR362122", 2));
             } catch (Exception e) {
                 e.printStackTrace();
             }
