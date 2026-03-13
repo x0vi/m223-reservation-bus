@@ -79,6 +79,76 @@ public class ReservationService {
         }                
     }
 
+    /**
+     * Action concurrente transactionnelle :
+     * Simule deux utilisateurs tentant de réserver le même véhicule en même temps.
+     * - Vérifie la disponibilité du véhicule
+     * - Crée la réservation si disponible
+     * - Simule une transaction longue (Thread.sleep) pour observer la concurrence
+     */
+    public void actionConcurrente(Reservation reservation) throws Exception {
+
+        /**
+         * Début de la transaction.
+         * Le mode autocommit est désactivé afin de contrôler explicitement
+         * quand la transaction est validée (COMMIT) ou annulée (ROLLBACK).
+         */
+        connection.setAutoCommit(false);
+
+        try {
+
+            /**
+             * Étape 1 : vérifier l'état de la ressource (disponibilité du véhicule).
+             */
+            System.out.println("Employé " + reservation.getIdEmploye() + " : vérification du véhicule " + reservation.getPlaque());
+
+            Vehicule vehicule = vehiculeDao.select(reservation.getPlaque());
+            int capaciteMax = (vehicule != null) ? vehicule.getCapaciteMax() : 0;
+            int totalDejaReserve = reservationDao.getTotalPlacesReservees(reservation.getPlaque(), reservation.getDateReservation());
+            boolean disponible = totalDejaReserve < capaciteMax;
+
+            System.out.println("Employé " + reservation.getIdEmploye() + " : places disponibles = " + disponible
+                    + " (" + totalDejaReserve + "/" + capaciteMax + ")");
+
+            if (disponible) {
+
+                /**
+                 * Étape 2 : créer la réservation.
+                 */
+                System.out.println("Employé " + reservation.getIdEmploye() + " : création de la réservation");
+
+                reservationDao.insert(reservation);
+
+                /**
+                 * Pause volontaire pour simuler une transaction longue.
+                 * Cela permet d'observer le comportement concurrent avec le second utilisateur.
+                 */
+                System.out.println("Employé " + reservation.getIdEmploye() + " : transaction en attente (simulation...)");
+                Thread.sleep(5000);
+
+                /**
+                 * Validation de la transaction.
+                 */
+                connection.commit();
+                System.out.println("Employé " + reservation.getIdEmploye() + " : COMMIT transaction confirmé");
+
+            } else {
+
+                /**
+                 * Si le véhicule est complet, aucune modification n'est faite.
+                 */
+                System.out.println("Employé " + reservation.getIdEmploye() + " : véhicule complet — aucune réservation créée");
+                connection.rollback();
+            }
+
+        } catch (Exception e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
+    }
+
     public List<Reservation> listerReservations() throws Exception {
         return reservationDao.selectAll();
     }
