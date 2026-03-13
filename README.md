@@ -28,7 +28,8 @@ Ouvrez votre navigateur et allez à : [http://localhost:22380](http://localhost:
 cd reservation-bus
 
 # Pour linux
-javac -cp "lib/*" -d out $(find src -name "*.java") 
+javac -cp "lib/*" -d out $(find src -name "*.java")
+java -cp "out:lib/*" Main
 
 # Pour windows (PowerShell)
 javac -cp "lib/*" -d out (Get-ChildItem -Path src -Filter "*.java" -Recurse).FullName
@@ -62,7 +63,7 @@ Objets simples transportant des données. Attributs privés, constructeur, gette
 |--------|-----------|-----------|
 | [`Vehicule`](src/model/Vehicule.java) | `t_vehicule` | `plaque`, `marque`, `modele`, `capaciteMax` |
 | [`Employe`](src/model/Employe.java) | `t_employe` | `idEmploye`, `nom`, `prenom` |
-| [`Reservation`](src/model/Reservation.java) | `t_reservation` | `idReservation`, `dateReservation`, `plaque`, `idEmploye` |
+| [`Reservation`](src/model/Reservation.java) | `t_reservation` | `dateReservation`, `plaque`, `idEmploye`, `nbPlaces`, `disponibilite` — `idReservation` géré par AUTO_INCREMENT |
 
 ### 2. Classes DAO (`src/dao/`)
 
@@ -70,9 +71,9 @@ Les classes DAO (Data Access Object) encapsulent l'accès à la base de données
 
 | Classe | Méthodes |
 |--------|----------|
-| [`VehiculeDao`](src/dao/VehiculeDao.java) | `selectAll()`, `insert()`, `update()` |
+| [`VehiculeDao`](src/dao/VehiculeDao.java) | `selectAll()`, `select()`, `insert()`, `update()` |
 | [`EmployeDao`](src/dao/EmployeDao.java) | `selectAll()`, `insert()`, `update()` |
-| [`ReservationDao`](src/dao/ReservationDao.java) | `selectAll()`, `insert()`, `update()` |
+| [`ReservationDao`](src/dao/ReservationDao.java) | `selectAll()`, `insert()`, `update()`, `getTotalPlacesReservees()` |
 
 **Caractéristiques des DAO :**
 - Constructeur prenant `Connection` en paramètre
@@ -87,7 +88,7 @@ Les classes Service coordonnent les actions et contiennent la logique métier. E
 |--------|-----------------|
 | [`VehiculeService`](src/service/VehiculeService.java) | Gestion des véhicules |
 | [`EmployeService`](src/service/EmployeService.java) | Gestion des employés |
-| [`ReservationService`](src/service/ReservationService.java) | Gestion des réservations |
+| [`ReservationService`](src/service/ReservationService.java) | Gestion des réservations — `creerReservation()`, `actionConcurrente()`, `listerReservations()` |
 
 **Caractéristiques des Services :**
 - Constructeur sans paramètre qui obtient la `Connection` via `DatabaseConnection`
@@ -210,9 +211,20 @@ public class NomClasseService {
 ```
 
 **Conventions :**
-- Modèles dans [`src/model/`](src/model/) — attributs privés, getters uniquement
-- DAO dans [`src/dao/`](src/dao/) — reçoivent `Connection` dans le constructeur
+- Modèles dans [`src/model/`](src/model/) — attributs privés, **getters uniquement**, dates en `String`, IDs AUTO_INCREMENT non inclus dans le constructeur
+- DAO dans [`src/dao/`](src/dao/) — reçoivent `Connection` dans le constructeur, gèrent toutes les conversions vers les types SQL
 - Services dans [`src/service/`](src/service/) — obtiennent `Connection` via `DatabaseConnection`, instancient les DAO
 - [`Main.java`](src/Main.java) utilise uniquement les Services, jamais les DAO directement
 - Utiliser `PreparedStatement` pour toutes les requêtes paramétrées
 - Fermer les ressources avec try-with-resources
+
+### 4. Concurrence transactionnelle
+
+La méthode `actionConcurrente(Reservation reservation)` dans `ReservationService` simule deux utilisateurs tentant de réserver le même véhicule simultanément :
+
+1. `setAutoCommit(false)` — début de transaction explicite
+2. `vehiculeDao.select()` avec `FOR UPDATE` — verrouillage de la ligne du véhicule
+3. `getTotalPlacesReservees()` — vérification de la disponibilité
+4. `reservationDao.insert()` — création si disponible, sinon rollback
+5. `Thread.sleep(5000)` — simulation d'une transaction longue
+6. `COMMIT` ou `ROLLBACK` selon le résultat
