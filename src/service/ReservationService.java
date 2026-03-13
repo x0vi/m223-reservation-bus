@@ -8,7 +8,6 @@ import model.Reservation;
 import model.Vehicule;
 
 import java.sql.Connection;
-import java.time.LocalDate;
 import java.util.List;
 
 public class ReservationService {
@@ -30,7 +29,8 @@ public class ReservationService {
      * - créer une réservation
      */
     public void creerReservation(String plaque, int idEmploye, int nbPlaces) throws Exception {
-        Reservation reservation = new Reservation(LocalDate.now(), plaque, idEmploye, nbPlaces);
+        String today = java.time.LocalDate.now().toString();
+        Reservation reservation = new Reservation(today, plaque, idEmploye, nbPlaces);
 
         int capaciteMax = 0;
         // Début de transaction
@@ -80,11 +80,13 @@ public class ReservationService {
     }
 
     /**
+* -------------------------------------------------------------------------------------------------------------------------------------------------------------
      * Action concurrente transactionnelle :
      * Simule deux utilisateurs tentant de réserver le même véhicule en même temps.
      * - Vérifie la disponibilité du véhicule
      * - Crée la réservation si disponible
      * - Simule une transaction longue (Thread.sleep) pour observer la concurrence
+* -------------------------------------------------------------------------------------------------------------------------------------------------------------
      */
     public void actionConcurrente(Reservation reservation) throws Exception {
 

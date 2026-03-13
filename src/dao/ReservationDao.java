@@ -3,7 +3,6 @@ package dao;
 import model.Reservation;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +28,7 @@ public class ReservationDao {
 
             while (rs.next()) {
                 Reservation r = new Reservation(
-                        rs.getDate("date_reservation").toLocalDate(),
+                        rs.getDate("date_reservation").toString(),
                         rs.getString("plaque"),
                         rs.getInt("id_employe"),
                         rs.getInt("nb_places")
@@ -58,7 +57,7 @@ public class ReservationDao {
     }
 
     // ===== SOMME DES PLACES DÉJÀ RÉSERVÉES =====
-    public int getTotalPlacesReservees(String plaque, LocalDate date) throws SQLException {
+    public int getTotalPlacesReservees(String plaque, String date) throws SQLException {
         String sql = """
             SELECT COALESCE(SUM(nb_places), 0) AS total
             FROM t_reservation
