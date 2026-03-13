@@ -1,20 +1,20 @@
 package model;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 public class Reservation {
     private int idReservation;
-    private Date dateReservation;
+    private LocalDate dateReservation;
     private String plaque;
     private int idEmploye;
-        private int nbPlaces;
+    private int nbPlaces;
     private boolean disponibilite;
 
-    public Reservation(int idReservation, Date dateReservation, String plaque, int idEmploye) {
+    public Reservation(int idReservation, LocalDate dateReservation, String plaque, int idEmploye) {
         this(idReservation, dateReservation, plaque, idEmploye, 1);
     }
 
-    public Reservation(int idReservation, Date dateReservation, String plaque, int idEmploye, int nbPlaces) {
+    public Reservation(int idReservation, LocalDate dateReservation, String plaque, int idEmploye, int nbPlaces) {
         this.idReservation = idReservation;
         this.dateReservation = dateReservation;
         this.plaque = plaque;
@@ -24,7 +24,7 @@ public class Reservation {
     }
 
     public int getIdReservation() { return idReservation; }
-    public Date getDateReservation() { return dateReservation; }
+    public LocalDate getDateReservation() { return dateReservation; }
     public String getPlaque() { return plaque; }
     public int getIdEmploye() { return idEmploye; }
     public int getNbPlaces() { return nbPlaces; }

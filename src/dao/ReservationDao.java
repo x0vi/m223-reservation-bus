@@ -3,6 +3,7 @@ package dao;
 import model.Reservation;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class ReservationDao {
             while (rs.next()) {
                 reservations.add(new Reservation(
                         rs.getInt("id_reservation"),
-                        rs.getDate("date_reservation"),
+                        rs.getDate("date_reservation").toLocalDate(),
                         rs.getString("plaque"),
                         rs.getInt("id_employe")
                 ));
@@ -46,7 +47,7 @@ public class ReservationDao {
         """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDate(1, r.getDateReservation());
+            ps.setDate(1, Date.valueOf(r.getDateReservation()));
             ps.setString(2, r.getPlaque());
             ps.setInt(3, r.getIdEmploye());
             ps.setInt(4, r.getNbPlaces());
@@ -55,7 +56,7 @@ public class ReservationDao {
     }
 
     // ===== SOMME DES PLACES DÉJÀ RÉSERVÉES =====
-    public int getTotalPlacesReservees(String plaque, java.sql.Date date) throws SQLException {
+    public int getTotalPlacesReservees(String plaque, LocalDate date) throws SQLException {
         String sql = """
             SELECT COALESCE(SUM(nb_places), 0) AS total
             FROM t_reservation
@@ -64,7 +65,7 @@ public class ReservationDao {
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, plaque);
-            ps.setDate(2, date);
+            ps.setDate(2, Date.valueOf(date));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("total");
@@ -83,7 +84,7 @@ public class ReservationDao {
         """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDate(1, r.getDateReservation());
+            ps.setDate(1, Date.valueOf(r.getDateReservation()));
             ps.setString(2, r.getPlaque());
             ps.setInt(3, r.getIdEmploye());
             ps.setInt(4, r.getIdReservation());

@@ -29,18 +29,21 @@ public class ReservationService {
      * - créer une réservation
      */
     public void creerReservation(Reservation reservation) throws Exception {
+
         
+        
+        int capaciteMax = 0;
         // Début de transaction
         connection.setAutoCommit(false);
 
         try {
 
             // 0. Vérification de la disponibilité
-            int capaciteMax = vehiculeDao.selectAll().stream()
-                    .filter(v -> v.getPlaque().equals(reservation.getPlaque()))
-                    .mapToInt(Vehicule::getCapaciteMax)
-                    .findFirst()
-                    .orElseThrow(() -> new Exception("Véhicule non trouvé : " + reservation.getPlaque()));
+            // lire vehicule (plaque)
+            Vehicule vehicule = vehiculeDao.select(reservation.getPlaque());
+            if(vehicule != null) {
+                capaciteMax = vehicule.getCapaciteMax();
+            }
 
             int totalDejaReserve = reservationDao.getTotalPlacesReservees(
                     reservation.getPlaque(), reservation.getDateReservation());

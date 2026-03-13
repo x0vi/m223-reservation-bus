@@ -34,6 +34,32 @@ public class VehiculeDao {
         return vehicules;
     }
 
+    public Vehicule select(String plaque) throws SQLException {
+        String sql = """
+                SELECT plaque, marque, modele, capacite_max
+                FROM t_vehicule
+                WHERE plaque = ?
+                """;
+
+        Vehicule vehicule = null;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, plaque);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    vehicule = new Vehicule(
+                        rs.getString("plaque"),
+                        rs.getString("marque"),
+                        rs.getString("modele"),
+                        rs.getInt("capacite_max")
+                    );
+                }
+            }
+        };
+
+        return vehicule;
+    }
+
     // ===== INSERT =====
     public void insert(Vehicule v) throws SQLException {
         String sql = """
