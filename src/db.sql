@@ -48,7 +48,7 @@ INSERT INTO t_employe (nom, prenom) VALUES
 
 -- Données initiales : Réservations
 INSERT INTO t_reservation (date_reservation, plaque, id_employe, nb_places) VALUES
-    ('2023-01-01', 'FR362122', 1, 4),
+    ('2026-03-13', 'FR362122', 1, 4),
     ('2023-01-02', 'FR789456', 2, 10),
     ('2023-01-03', 'FR111222', 3, 20);
 
