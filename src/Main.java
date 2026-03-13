@@ -1,13 +1,9 @@
-import model.*;
 import service.ReservationService;
-
-import java.time.LocalDate;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        LocalDate dateRes = LocalDate.now();
         Thread utilisateur1 = new Thread(() -> {
             try {
                 ReservationService service = new ReservationService();
