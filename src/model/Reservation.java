@@ -3,19 +3,14 @@ package model;
 import java.time.LocalDate;
 
 public class Reservation {
-    private int idReservation;
+    private int idReservation;      // généré par la DB (AUTO_INCREMENT), pas dans le constructeur
     private LocalDate dateReservation;
     private String plaque;
     private int idEmploye;
     private int nbPlaces;
     private boolean disponibilite;
 
-    public Reservation(int idReservation, LocalDate dateReservation, String plaque, int idEmploye) {
-        this(idReservation, dateReservation, plaque, idEmploye, 1);
-    }
-
-    public Reservation(int idReservation, LocalDate dateReservation, String plaque, int idEmploye, int nbPlaces) {
-        this.idReservation = idReservation;
+    public Reservation(LocalDate dateReservation, String plaque, int idEmploye, int nbPlaces) {
         this.dateReservation = dateReservation;
         this.plaque = plaque;
         this.idEmploye = idEmploye;
@@ -24,6 +19,7 @@ public class Reservation {
     }
 
     public int getIdReservation() { return idReservation; }
+    public void setIdReservation(int idReservation) { this.idReservation = idReservation; }
     public LocalDate getDateReservation() { return dateReservation; }
     public String getPlaque() { return plaque; }
     public int getIdEmploye() { return idEmploye; }

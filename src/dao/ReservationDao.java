@@ -18,7 +18,7 @@ public class ReservationDao {
     // ===== SELECT =====
     public List<Reservation> selectAll() throws SQLException {
         String sql = """
-            SELECT id_reservation, date_reservation, plaque, id_employe
+            SELECT id_reservation, date_reservation, plaque, id_employe, nb_places
             FROM t_reservation
         """;
 
@@ -28,12 +28,14 @@ public class ReservationDao {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                reservations.add(new Reservation(
-                        rs.getInt("id_reservation"),
+                Reservation r = new Reservation(
                         rs.getDate("date_reservation").toLocalDate(),
                         rs.getString("plaque"),
-                        rs.getInt("id_employe")
-                ));
+                        rs.getInt("id_employe"),
+                        rs.getInt("nb_places")
+                );
+                r.setIdReservation(rs.getInt("id_reservation"));
+                reservations.add(r);
             }
         }
         return reservations;

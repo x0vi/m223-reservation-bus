@@ -1,17 +1,13 @@
-import model.*;
 import service.ReservationService;
-
-import java.time.LocalDate;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        LocalDate dateRes = LocalDate.now();
         Thread utilisateur1 = new Thread(() -> {
             try {
                 ReservationService service = new ReservationService();
-                service.creerReservation(new Reservation(0, dateRes, "FR362122", 1));
+                service.creerReservation("FR362122", 1, 1);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -20,7 +16,7 @@ public class Main {
         Thread utilisateur2 = new Thread(() -> {
             try {
                 ReservationService service = new ReservationService();
-                service.creerReservation(new Reservation(0, dateRes, "FR362122", 2));
+                service.creerReservation("FR362122", 2, 1);
             } catch (Exception e) {
                 e.printStackTrace();
             }

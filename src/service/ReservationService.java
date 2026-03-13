@@ -8,6 +8,7 @@ import model.Reservation;
 import model.Vehicule;
 
 import java.sql.Connection;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ReservationService {
@@ -28,10 +29,9 @@ public class ReservationService {
      * Action métier transactionnelle :
      * - créer une réservation
      */
-    public void creerReservation(Reservation reservation) throws Exception {
+    public void creerReservation(String plaque, int idEmploye, int nbPlaces) throws Exception {
+        Reservation reservation = new Reservation(LocalDate.now(), plaque, idEmploye, nbPlaces);
 
-        
-        
         int capaciteMax = 0;
         // Début de transaction
         connection.setAutoCommit(false);
