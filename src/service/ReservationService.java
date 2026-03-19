@@ -97,6 +97,10 @@ public class ReservationService {
          */
         connection.setAutoCommit(false);
 
+        // Verrou pessimiste : bloque les autres transactions sur ce véhicule
+        System.out.println("Employé " + reservation.getIdEmploye() + " : verrouillage véhicule " + reservation.getPlaque());
+        reservationDao.verrouillerVehicule(connection, reservation.getPlaque());
+
         try {
 
             /**
