@@ -76,6 +76,21 @@ public class ReservationDao {
         return 0;
     }
 
+    // ===== VERROU PESSIMISTE =====
+    public void verrouillerVehicule(Connection connection, String plaque) throws Exception {
+        String sql = """
+            SELECT *
+            FROM t_vehicule
+            WHERE plaque = ?
+            FOR UPDATE
+        """;
+
+        PreparedStatement stmt = connection.prepareStatement(sql);
+        stmt.setString(1, plaque);
+
+        stmt.executeQuery();
+    }
+
     // ===== UPDATE =====
     public void update(Reservation r) throws SQLException {
         String sql = """
